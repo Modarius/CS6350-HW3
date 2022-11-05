@@ -4,6 +4,74 @@ from copy import deepcopy
 import numpy as np
 import pandas as pd
 
+class Perceptron:
+    def __init__(self, length):
+        self.weights = np.zeros((1,length + 1)) # extra space for the bias term
+        return
+
+    def train(self, X, Y, r=0.001):
+        X = np.hstack((np.ones((len(X),1)), X)) # augment X with 1's to act as b
+        for i, x in enumerate(X):
+            if (Y[i] * np.dot(self.weights, x)) <= 0:
+                self.weights = self.weights + r * (Y[i] * x)
+        return
+
+    def test(self, X, Y):
+        X = np.hstack((np.ones((len(X),1)), X)) # augment X with 1's to act as b
+        pred = self.getPrediction(X)
+        wrong = sum(pred != Y)
+        error = wrong / len(Y)
+        return error
+
+    def getWeights(self):
+        return self.weights.squeeze()[1:]
+
+    def getBias(self):
+        return self.weights[0]
+
+    def getPrediction(self, X):
+        return np.sign(np.dot(self.weights, X.T)).squeeze()
+
+class VotedPerceptron(Perceptron):
+    def __init__(self, length):
+        super().__init__(length)
+        self.c = np.zeros((1,1))
+
+    def train(self, X, Y, r=0.001):
+        m = 0
+        X = np.hstack((np.ones((len(X),1)), X)) # augment X with 1's to act as b
+        for i, x in enumerate(X):
+            if (Y[i] * np.dot(self.weights[m], x)) <= 0:
+                self.weights = np.vstack((self.weights, self.weights[m,:] + r * (Y[i] * x)))
+                m += 1
+                self.c = np.vstack((self.c,[1]))
+            else:
+                self.c[m] += 1
+        return
+
+    def getPrediction(self, X):
+        return np.sign(np.dot(self.c.T, np.sign(np.dot(self.weights, X.T)))).squeeze()
+
+    def getWeights(self):
+        return self.weights.squeeze()[:,1:]
+
+    def getBias(self):
+        return self.weights[:,0]
+
+class AveragePerceptron(Perceptron):
+    def __init__(self, length):
+        super().__init__(length)
+        self.a = np.zeros((1,length + 1))
+    def train(self, X, Y, r=0.001):
+        X = np.hstack((np.ones((len(X),1)), X)) # augment X with 1's to act as b
+        for i, x in enumerate(X):
+            if (Y[i] * np.dot(self.weights, x)) <= 0:
+                self.weights = self.weights + r * (Y[i] * x)
+            self.a += self.weights
+        return 
+    def getPrediction(self, X):
+        return np.sign(np.dot(self.a, X.T)).squeeze()
+
 
 # for leaf nodes, name is the same as the branch it is connected to
 # for regular nodes, name is the name of the attribute it represents. Its children will be named the values of the attributes values
