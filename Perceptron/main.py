@@ -12,7 +12,7 @@ def importData(filename, column_labels=None, index_col=None, header=None):
     return terms
 
 def main(runs):
-    EPOCHS = 100
+    EPOCHS = 10
     errors = np.zeros((3, EPOCHS))
     for test_run in range(runs):
 
@@ -57,4 +57,4 @@ def main(runs):
 
 if __name__ == "__main__":
     np.set_printoptions(edgeitems=30, linewidth = 1000) # this is just formatting for numpy print, https://www.reddit.com/r/vscode/comments/s2xjgz/how_do_i_increase_the_width_of_the_output_of_the/?ref=share&ref_source=link
-    main(10000)
+    main(1)
